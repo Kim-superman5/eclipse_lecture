@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>식 현상 탐구 (일식 편)</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #070914;
+            background-image:
+                radial-gradient(circle at 8% 18%, rgba(255,255,255,0.95) 0 1px, transparent 1.6px),
+                radial-gradient(circle at 22% 72%, rgba(102,252,241,0.65) 0 1px, transparent 1.8px),
+                radial-gradient(circle at 38% 28%, rgba(255,255,255,0.8) 0 1px, transparent 1.7px),
+                radial-gradient(circle at 58% 64%, rgba(255,255,255,0.7) 0 1px, transparent 1.6px),
+                radial-gradient(circle at 76% 22%, rgba(102,252,241,0.7) 0 1px, transparent 1.8px),
+                radial-gradient(circle at 91% 80%, rgba(255,255,255,0.85) 0 1px, transparent 1.6px),
+                linear-gradient(180deg, #070914 0%, #0b0c10 52%, #070914 100%);
+            background-size: 180px 180px, 230px 230px, 260px 260px, 210px 210px, 250px 250px, 200px 200px, 100% 100%;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        /* 탭 디자인 */
+        .tab-container { margin-top: 20px; border-bottom: 2px solid #45a29e; display: flex; justify-content: center; }
+        .tab-btn { background-color: #1f2833; color: #c5c6c7; border: none; padding: 15px 30px; font-size: 1.1em; cursor: pointer; border-radius: 10px 10px 0 0; margin: 0 5px; transition: 0.3s; }
+        .tab-btn.active { background-color: #66fcf1; color: black; font-weight: bold; }
+        
+        /* 탭 콘텐츠 관리 (CSS로 확실하게 제어) */
+        .tab-content { display: none; padding: 20px 0; }
+        .tab-content.active-content { display: block; }
+        
+        /* 패널 디자인 */
+        .simulation-wrapper { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 15px; }
+        .panel { background-color: #1f2833; border-radius: 15px; padding: 20px; flex: 1; min-width: 380px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .panel h3 { color: #66fcf1; margin-top: 0; }
+        canvas { background-color: #0b0c10; border: 1px solid #45a29e; border-radius: 10px; width: 100%; max-width: 450px; }
+        
+        /* 조작부 */
+        .controls { background-color: #1f2833; padding: 20px; border-radius: 15px; margin-top: 20px; }
+        input[type="range"] { width: 75%; margin: 15px 0; cursor: pointer; accent-color: #66fcf1; }
+        .result-text { font-size: 1.2em; font-weight: bold; margin-top: 10px; min-height: 50px; }
+        
+        /* 관측자 하늘 뷰 (탐구 1) */
+        .obs-container { display: flex; flex-direction: column; gap: 15px; }
+        .obs-box { position: relative; width: 100%; height: 160px; background-color: #87CEEB; border-radius: 10px; overflow: hidden; border: 2px solid #45a29e; }
+        .obs-title { position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 5px; font-size: 0.9em; }
+        .sky-sun { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; background-color: #FFD700; border-radius: 50%; box-shadow: 0 0 20px #FF8C00; }
+        .sky-moon { position: absolute; width: 60px; height: 60px; background-color: #111; border-radius: 50%; transform: translate(-50%, -50%); }
+        .horizon { position: absolute; bottom: 0; left: 0; width: 100%; height: 40px; background: linear-gradient(to bottom, #2d5a27, #1a3a16); border-top: 2px solid #1a3a16; }
+        .observer { position: absolute; bottom: 35px; left: 50%; transform: translateX(-50%); font-size: 30px; }
+        .compass { position: absolute; bottom: 5px; width: 100%; display: flex; justify-content: space-between; padding: 0 15px; box-sizing: border-box; font-size: 0.9em; color: rgba(255,255,255,0.8); }
+
+        /* 관측자 하늘 뷰 (탐구 2) */
+        .sky2 { position: relative; width: 260px; height: 260px; background-color: #87CEEB; border-radius: 50%; margin: 20px auto; overflow: hidden; transition: 0.3s; }
+        .sun2 { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 180px; height: 180px; background-color: #FFD700; border-radius: 50%; box-shadow: 0 0 40px #FF8C00; }
+        .moon2 { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #111; border-radius: 50%; transition: 0.1s; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>🌎 식 현상 탐구 시뮬레이션 (일식 편)</h2>
+        <p>각 탭을 선택하여 슬라이더를 직접 움직여 보세요.</p>
+
+        <div class="tab-container">
+            <button class="tab-btn active" id="btn-tab1" onclick="switchTab('tab1')">탐구 1: 일식의 원리와 그림자</button>
+            <button class="tab-btn" id="btn-tab2" onclick="switchTab('tab2')">탐구 2: 거리가 만드는 마법</button>
+        </div>
+
+        <div id="tab1" class="tab-content active-content">
+            <div class="controls" style="margin-top: 0;">
+                <label>달의 궤도 이동 (시계 반대방향 공전)</label><br>
+                <input type="range" id="slider1" min="0" max="100" value="10">
+            </div>
+            <div class="simulation-wrapper">
+                <div class="panel">
+                    <h3>우주 시점 (원인)</h3>
+                    <canvas id="canvas1" width="450" height="340"></canvas>
+                    <div id="result1" class="result-text" style="color:#a0a0a0;">슬라이더를 움직여 달을 이동시키세요.</div>
+                </div>
+                <div class="panel">
+                    <h3>관측자 시점 (결과)</h3>
+                    <div class="obs-container">
+                        <div class="obs-box" id="sky1-A">
+                            <div class="obs-title">A: 본그림자 지역 (적도 부근)</div>
+                            <div class="sky-sun"></div>
+                            <div class="sky-moon" id="moon1-A" style="top: 30%; left: 80%;"></div>
+                            <div class="horizon"><div class="compass"><span>동(E)</span><span>남(S)</span><span>서(W)</span></div></div>
+                            <div class="observer">🧍</div>
+                        </div>
+                        <div class="obs-box" id="sky1-B">
+                            <div class="obs-title">B: 반그림자 지역 (고위도 부근)</div>
+                            <div class="sky-sun"></div>
+                            <div class="sky-moon" id="moon1-B" style="top: 18%; left: 80%;"></div>
+                            <div class="horizon"><div class="compass"><span>동(E)</span><span>남(S)</span><span>서(W)</span></div></div>
+                            <div class="observer">🧍</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab2" class="tab-content">
+            <div class="controls" style="margin-top: 0;">
+                <label>지구와 달의 거리 (가까움 ↔ 멂)</label><br>
+                <input type="range" id="slider2" min="50" max="150" value="100">
+            </div>
+            <div class="simulation-wrapper">
+                <div class="panel">
+                    <h3>우주 시점 (원인)</h3>
+                    <canvas id="canvas2" width="450" height="300"></canvas>
+                </div>
+                <div class="panel">
+                    <h3>관측자 시점 (결과)</h3>
+                    <div class="sky2" id="sky2">
+                        <div class="sun2"></div>
+                        <div class="moon2" id="moon2"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="controls" style="margin-top: 0;">
+                <div id="result2" class="result-text">슬라이더를 움직여 보세요.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ------------------ 탭 전환 로직 ------------------
+        function switchTab(tabId) {
+            // 모든 탭 콘텐츠 숨기기
+            document.getElementById('tab1').classList.remove('active-content');
+            document.getElementById('tab2').classList.remove('active-content');
+            
+            // 모든 버튼 비활성화
+            document.getElementById('btn-tab1').classList.remove('active');
+            document.getElementById('btn-tab2').classList.remove('active');
+            
+            // 선택된 탭 활성화
+            document.getElementById(tabId).classList.add('active-content');
+            document.getElementById('btn-' + tabId).classList.add('active');
+
+            // 탭을 누를 때마다 화면 갱신 보장
+            if(tabId === 'tab1') drawTab1();
+            if(tabId === 'tab2') drawTab2();
+        }
+
+        // ------------------ 탐구 1 그리기 로직 ------------------
+        function drawTab1() {
+            const canvas = document.getElementById('canvas1');
+            const ctx = canvas.getContext('2d');
+            const val = parseInt(document.getElementById('slider1').value);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSpaceBackground(ctx, canvas);
+
+            // 좌표 설정
+            const sunX = -20, sunY = 170, sunR = 100;
+            const earthX = 380, earthY = 170, earthR = 30;
+            const moonR = 12;
+            const orbitR = 160;
+            const orbitAngle = (220 - (val / 100) * 80) * Math.PI / 180;
+            const moonX = earthX + Math.cos(orbitAngle) * orbitR;
+            const moonY = earthY + Math.sin(orbitAngle) * orbitR;
+
+            // 달의 공전 궤도
+            ctx.setLineDash([6, 8]);
+            ctx.strokeStyle = 'rgba(197, 198, 199, 0.32)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(earthX, earthY, orbitR, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            drawOrbitArrow(ctx, earthX, earthY, orbitR, 178 * Math.PI / 180, '#c5c6c7');
+
+            // 반그림자: 달 뒤쪽으로 넓게 퍼지는 흐린 그림자
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+            ctx.beginPath(); ctx.moveTo(moonX, moonY - moonR);
+            ctx.lineTo(earthX + 18, earthY - earthR - 48); ctx.lineTo(earthX + 18, earthY + earthR + 48);
+            ctx.lineTo(moonX, moonY + moonR); ctx.fill();
+
+            // 본그림자: 태양빛이 완전히 가려지는 좁은 원뿔
+            const umbraTipX = moonX + 190;
+            const umbraTipY = moonY + (earthY - moonY) * 0.18;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.82)';
+            ctx.beginPath(); ctx.moveTo(moonX, moonY - moonR);
+            ctx.lineTo(umbraTipX, umbraTipY); ctx.lineTo(moonX, moonY + moonR); ctx.fill();
+            
+            // 천체
+            ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#4169E1'; ctx.beginPath(); ctx.arc(earthX, earthY, earthR, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#AAAAAA'; ctx.beginPath(); ctx.arc(moonX, moonY, moonR, 0, Math.PI*2); ctx.fill();
+
+            ctx.fillStyle = 'white'; ctx.font = '13px Arial';
+            ctx.fillText('태양', 15, 30); ctx.fillText('지구', earthX - 12, earthY - 40); ctx.fillText('달', moonX + 15, moonY + 5);
+            drawCanvasLabel(ctx, '반그림자', moonX + 80, moonY - 52, '#d8e8ff');
+            drawCanvasLabel(ctx, '본그림자', moonX + 72, moonY + 8, '#ff9a9a');
+            drawCanvasLabel(ctx, '달의 공전 궤도', earthX - 168, earthY + 98, '#c5c6c7');
+
+            // 관측자 시점 동기화
+            const skyMoonX = 80 - (val / 100) * 60; 
+            const moon1A = document.getElementById('moon1-A');
+            const sky1A = document.getElementById('sky1-A');
+            const moon1B = document.getElementById('moon1-B');
+            const sky1B = document.getElementById('sky1-B');
+
+            moon1A.style.left = skyMoonX + '%';
+            let distA = Math.abs(skyMoonX - 50);
+            if(distA < 5) { sky1A.style.backgroundColor = "#000022"; } 
+            else if (distA < 15) { sky1A.style.backgroundColor = "#4682B4"; } 
+            else { sky1A.style.backgroundColor = "#87CEEB"; }
+
+            moon1B.style.left = skyMoonX + '%';
+            let distB = Math.abs(skyMoonX - 50);
+            if(distB < 15) { sky1B.style.backgroundColor = "#5F9EA0"; } 
+            else { sky1B.style.backgroundColor = "#87CEEB"; }
+
+            // 텍스트 동기화
+            const result1 = document.getElementById('result1');
+            if (val >= 47 && val <= 53) {
+                result1.innerHTML = "<span style='color:#66fcf1'>🌑 태양-달-지구가 정렬됩니다.</span><br>본그림자 지역은 개기일식, 반그림자 지역은 부분일식을 봅니다.";
+            } else {
+                result1.innerHTML = "달이 공전 궤도를 이동하고 있습니다.<br>그림자가 지구에 닿는 순간에만 일식이 관측됩니다.";
+            }
+        }
+
+        // ------------------ 탐구 2 그리기 로직 ------------------
+        function drawTab2() {
+            const canvas = document.getElementById('canvas2');
+            const ctx = canvas.getContext('2d');
+            const distance = parseInt(document.getElementById('slider2').value);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSpaceBackground(ctx, canvas);
+
+            const earthX = 380, earthY = 150, earthR = 32;
+            const sunX = -50, sunY = 150, sunR = 120;
+            const moonX = earthX - distance, moonY = 150, moonR = 12;
+
+            // 반그림자: 본그림자 바깥에서 태양 일부만 가려지는 영역
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.beginPath(); ctx.moveTo(moonX, moonY - moonR);
+            ctx.lineTo(earthX + 35, earthY - earthR - 52); ctx.lineTo(earthX + 35, earthY + earthR + 52);
+            ctx.lineTo(moonX, moonY + moonR); ctx.fill();
+
+            // 본그림자: 달이 가까울수록 지구까지 닿고, 멀수록 지구 앞에서 끝난 뒤 X자 연장 영역이 닿음
+            const umbraTipX = moonX + 105;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.beginPath(); ctx.moveTo(moonX, moonY - moonR);
+            ctx.lineTo(umbraTipX, moonY); ctx.lineTo(moonX, moonY + moonR); ctx.fill();
+
+            const shouldShowAntumbra = umbraTipX < earthX - earthR;
+            if (shouldShowAntumbra) {
+                const antumbraEndX = earthX + earthR + 8;
+                const antumbraHalfWidth = Math.max(10, (antumbraEndX - umbraTipX) * 0.18);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
+                ctx.beginPath();
+                ctx.moveTo(umbraTipX, moonY);
+                ctx.lineTo(antumbraEndX, moonY - antumbraHalfWidth);
+                ctx.lineTo(antumbraEndX, moonY + antumbraHalfWidth);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.strokeStyle = 'rgba(255, 154, 60, 0.9)';
+                ctx.lineWidth = 1.3;
+                ctx.beginPath();
+                ctx.moveTo(moonX, moonY - moonR);
+                ctx.lineTo(umbraTipX, moonY);
+                ctx.lineTo(antumbraEndX, moonY + antumbraHalfWidth);
+                ctx.moveTo(moonX, moonY + moonR);
+                ctx.lineTo(umbraTipX, moonY);
+                ctx.lineTo(antumbraEndX, moonY - antumbraHalfWidth);
+                ctx.stroke();
+            }
+
+            // 천체
+            ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#4169E1'; ctx.beginPath(); ctx.arc(earthX, earthY, earthR, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#AAAAAA'; ctx.beginPath(); ctx.arc(moonX, moonY, moonR, 0, Math.PI*2); ctx.fill();
+
+            ctx.fillStyle = 'white'; ctx.font = '13px Malgun Gothic';
+            ctx.fillText('태양', 18, 32);
+            ctx.fillText('달', moonX - 10, moonY - 20);
+            ctx.fillText('지구', earthX - 13, earthY - 42);
+            drawCanvasLabel(ctx, '반그림자', moonX + 76, moonY - 56, '#d8e8ff');
+            drawCanvasLabel(ctx, '본그림자', moonX + 48, moonY + 8, '#ff9a9a');
+            if (shouldShowAntumbra) {
+                drawCanvasLabel(ctx, '본그림자 연장 영역', umbraTipX + 10, moonY + 34, '#FF9A3C');
+            }
+
+            // 관측자 시점 동기화
+            const moon2 = document.getElementById('moon2');
+            const sky2 = document.getElementById('sky2');
+            const result2 = document.getElementById('result2');
+
+            const moonSize = 180 + (105 - distance) * 0.75;
+            moon2.style.width = moonSize + 'px';
+            moon2.style.height = moonSize + 'px';
+
+            if (105 >= distance) {
+                result2.innerHTML = "개기일식!<br><span style='font-size:0.7em; color:#4ECCA3;'>달이 가까워 본그림자가 지구에 닿고, 태양이 완전히 가려집니다.</span>";
+                result2.style.color = "#4ECCA3"; sky2.style.backgroundColor = "#00001a";
+            } else {
+                result2.innerHTML = "금환일식!<br><span style='font-size:0.7em; color:#FF9A3C;'>달이 멀어 본그림자는 지구 앞에서 끝나지만, X자 연장 영역이 지구에 닿아 태양의 테두리가 남습니다.</span>";
+                result2.style.color = "#FF9A3C"; sky2.style.backgroundColor = "#1a1a3a";
+            }
+        }
+
+        function drawSpaceBackground(ctx, canvas) {
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, '#050713');
+            grad.addColorStop(1, '#10182f');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgba(255,255,255,0.72)';
+            const stars = [
+                [42, 38, 1.2], [96, 84, 1], [156, 44, 1.4], [312, 48, 1],
+                [405, 82, 1.3], [70, 255, 1], [178, 292, 1.2], [332, 268, 1]
+            ];
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star[0], star[1], star[2], 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawOrbitArrow(ctx, cx, cy, radius, angle, color) {
+            const x = cx + Math.cos(angle) * radius;
+            const y = cy + Math.sin(angle) * radius;
+            const tangent = angle - Math.PI / 2;
+            const size = 8;
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(tangent);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(size, 0);
+            ctx.lineTo(-size * 0.65, -size * 0.55);
+            ctx.lineTo(-size * 0.65, size * 0.55);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawCanvasLabel(ctx, text, x, y, color) {
+            ctx.save();
+            ctx.font = '12px Malgun Gothic';
+            const width = ctx.measureText(text).width + 12;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+            ctx.fillRect(x - 6, y - 14, width, 20);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+            ctx.strokeRect(x - 6, y - 14, width, 20);
+            ctx.fillStyle = color;
+            ctx.fillText(text, x, y);
+            ctx.restore();
+        }
+
+        // ------------------ 이벤트 리스너 및 초기화 ------------------
+        document.getElementById('slider1').addEventListener('input', drawTab1);
+        document.getElementById('slider2').addEventListener('input', drawTab2);
+
+        // 페이지가 열리자마자 두 개의 캔버스를 모두 그려둠 (오류 방지)
+        drawTab1();
+        drawTab2();
+    </script>
+</body>
+</html>

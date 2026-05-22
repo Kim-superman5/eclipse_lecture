@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>식 현상 탐구 (월식 및 심화 편) - 실감 버전</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #070914;
+            background-image:
+                radial-gradient(circle at 8% 18%, rgba(255,255,255,0.95) 0 1px, transparent 1.6px),
+                radial-gradient(circle at 22% 72%, rgba(102,252,241,0.65) 0 1px, transparent 1.8px),
+                radial-gradient(circle at 38% 28%, rgba(255,255,255,0.8) 0 1px, transparent 1.7px),
+                radial-gradient(circle at 58% 64%, rgba(255,255,255,0.7) 0 1px, transparent 1.6px),
+                radial-gradient(circle at 76% 22%, rgba(102,252,241,0.7) 0 1px, transparent 1.8px),
+                radial-gradient(circle at 91% 80%, rgba(255,255,255,0.85) 0 1px, transparent 1.6px),
+                linear-gradient(180deg, #070914 0%, #0b0c10 52%, #070914 100%);
+            background-size: 180px 180px, 230px 230px, 260px 260px, 210px 210px, 250px 250px, 200px 200px, 100% 100%;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .tab-container { margin-top: 20px; border-bottom: 2px solid #45a29e; display: flex; justify-content: center; }
+        .tab-btn { background-color: #1f2833; color: #c5c6c7; border: none; padding: 15px 30px; font-size: 1.1em; cursor: pointer; border-radius: 10px 10px 0 0; margin: 0 5px; transition: 0.3s; }
+        .tab-btn:hover { background-color: #45a29e; color: black; }
+        .tab-btn.active { background-color: #66fcf1; color: black; font-weight: bold; }
+        .tab-content { display: none; padding: 20px 0; }
+        .tab-content.active-content { display: block; }
+
+        .simulation-wrapper { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 15px; }
+        .panel { background-color: #1f2833; border-radius: 15px; padding: 20px; flex: 1; min-width: 380px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .panel h3 { color: #66fcf1; margin-top: 0; }
+        canvas { background-color: #0b0c10; border: 1px solid #45a29e; border-radius: 10px; width: 100%; max-width: 480px; height: 360px; }
+        #canvas2 { max-width: 760px; height: auto; }
+
+        .controls { background-color: #1f2833; padding: 20px; border-radius: 15px; margin-top: 20px; }
+        input[type="range"] { width: 75%; margin: 15px 0; cursor: pointer; accent-color: #66fcf1; }
+        .result-text { font-size: 1.2em; font-weight: bold; margin-top: 10px; min-height: 50px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>🌎 식 현상 탐구 시뮬레이션 (월식 및 심화 편)</h2>
+
+        <div class="tab-container">
+            <button class="tab-btn active" id="btn-tab1" onclick="switchTab('tab1')">탐구 3: 월식의 원리와 블러드문</button>
+            <button class="tab-btn" id="btn-tab2" onclick="switchTab('tab2')">심화: 왜 매달 식이 안 일어날까?</button>
+        </div>
+
+        <div id="tab1" class="tab-content active-content">
+            <div class="controls" style="margin-top: 0;">
+                <label>월식 시간 경과 (보름달 ↔ 개기월식 ↔ 보름달)</label><br>
+                <input type="range" id="slider1" min="0" max="100" value="0">
+            </div>
+            <div class="simulation-wrapper">
+                <div class="panel">
+                    <h3>우주 시점 (빛의 산란과 굴절 원리)</h3>
+                    <canvas id="canvas1_space" width="480" height="360"></canvas>
+                </div>
+                <div class="panel">
+                    <h3>지구 밤하늘 관측 시뮬레이션 (동→서)</h3>
+                    <canvas id="canvas1_obs" width="480" height="360"></canvas>
+                    <div id="result1" class="result-text" style="margin-top:10px; min-height: 70px; font-size: 1.1em;">
+                        관측 시작! 슬라이더를 움직여주세요.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab2" class="tab-content">
+            <div class="controls" style="margin-top: 0;">
+                <label>관측 시점 변경 (위에서 보기 ↔ 옆에서 보기)</label><br>
+                <input type="range" id="slider2" min="0" max="90" value="0">
+            </div>
+            <div class="simulation-wrapper">
+                <div class="panel" style="max-width: 820px; margin: 0 auto;">
+                    <h3>태양-지구-달 궤도 3D 분석</h3>
+                    <canvas id="canvas2" width="760" height="430"></canvas>
+                    <div id="result2" class="result-text" style="color:#c5c6c7; font-size: 1.1em; margin-top: 15px;">
+                        위에서 볼 때(0도)는 매달 식이 일어날 것처럼 보입니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. 사진 로딩 설정 (에러 원천 차단) ---
+        const moonImg = new Image();
+        const bloodImg = new Image();
+
+        // 고해상도 실제 보름달과 블러드문 사진
+        moonImg.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/600px-FullMoon2010.jpg";
+        bloodImg.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Total_Lunar_Eclipse_September_27_2015_Stellarum.JPG/600px-Total_Lunar_Eclipse_September_27_2015_Stellarum.JPG";
+
+        // 사진이 로드될 때 화면을 바로 다시 그려줍니다.
+        moonImg.onload = () => { drawTab1(); };
+        bloodImg.onload = () => { drawTab1(); };
+
+        function switchTab(tabId) {
+            document.getElementById('tab1').classList.remove('active-content');
+            document.getElementById('tab2').classList.remove('active-content');
+            document.getElementById('btn-tab1').classList.remove('active');
+            document.getElementById('btn-tab2').classList.remove('active');
+
+            document.getElementById(tabId).classList.add('active-content');
+            document.getElementById('btn-' + tabId).classList.add('active');
+
+            if(tabId === 'tab1') drawTab1();
+            if(tabId === 'tab2') drawTab2();
+        }
+
+        // ------------------ 탐구 3: 월식 (에러 수정 및 실감 효과 극대화) ------------------
+        function drawTab1() {
+            const canvasS = document.getElementById('canvas1_space');
+            const canvasO = document.getElementById('canvas1_obs');
+            const ctxS = canvasS.getContext('2d');
+            const ctxO = canvasO.getContext('2d');
+            const val = parseInt(document.getElementById('slider1').value);
+
+            // ================= 1. 우주 시점: 빛의 경로 시각화 =================
+            ctxS.clearRect(0, 0, canvasS.width, canvasS.height);
+            const eX = 180, eY = 180, eR = 30;
+            const orbitR = 200;
+            const orbitAngle = (35 - (val / 100) * 70) * Math.PI / 180;
+            const moon3X = eX + Math.cos(orbitAngle) * orbitR;
+            const moon3Y = eY + Math.sin(orbitAngle) * orbitR;
+
+            ctxS.fillStyle = 'rgba(135, 206, 235, 0.3)';
+            ctxS.beginPath(); ctxS.arc(eX, eY, eR + 10, 0, Math.PI*2); ctxS.fill();
+
+            const sunX = -100, sunY = 180, sunR = 150;
+            ctxS.fillStyle = '#FFD700'; ctxS.beginPath(); ctxS.arc(sunX, sunY, sunR, 0, Math.PI*2); ctxS.fill();
+
+            ctxS.fillStyle = 'rgba(255, 255, 150, 0.03)';
+            ctxS.fillRect(0, 0, 180, 360);
+
+            // 달의 공전 궤도: 슬라이더를 오른쪽으로 밀면 시계 반대방향으로 이동합니다.
+            ctxS.setLineDash([6, 8]);
+            ctxS.strokeStyle = 'rgba(197, 198, 199, 0.24)';
+            ctxS.lineWidth = 1.5;
+            ctxS.beginPath(); ctxS.arc(eX, eY, orbitR, 0, Math.PI*2); ctxS.stroke();
+            ctxS.setLineDash([]);
+            drawOrbitArrow(ctxS, eX, eY, orbitR, -23 * Math.PI / 180, '#c5c6c7');
+
+            // 그림자 구역 명시
+            ctxS.fillStyle = 'rgba(255, 255, 255, 0.04)';
+            ctxS.beginPath(); ctxS.moveTo(eX, eY - eR); ctxS.lineTo(480, eY - eR - 55); ctxS.lineTo(480, eY + eR + 55); ctxS.lineTo(eX, eY + eR); ctxS.fill();
+
+            ctxS.fillStyle = 'rgba(0, 0, 0, 0.85)';
+            ctxS.beginPath(); ctxS.moveTo(eX, eY - eR + 2); ctxS.lineTo(480, eY - eR + 12); ctxS.lineTo(480, eY + eR - 12); ctxS.lineTo(eX, eY + eR - 2); ctxS.fill();
+
+            // 굴절된 적색광
+            ctxS.strokeStyle = 'rgba(255, 77, 77, 0.6)';
+            ctxS.lineWidth = 1.5;
+            ctxS.beginPath(); ctxS.moveTo(50, 155); ctxS.quadraticCurveTo(eX, 150, moon3X - 10, 175); ctxS.stroke();
+            ctxS.beginPath(); ctxS.moveTo(50, 158); ctxS.quadraticCurveTo(eX, 153, moon3X - 10, 178); ctxS.stroke();
+            ctxS.beginPath(); ctxS.moveTo(50, 205); ctxS.quadraticCurveTo(eX, 210, moon3X - 10, 185); ctxS.stroke();
+            ctxS.beginPath(); ctxS.moveTo(50, 202); ctxS.quadraticCurveTo(eX, 207, moon3X - 10, 182); ctxS.stroke();
+
+            // 산란된 청색광
+            ctxS.strokeStyle = 'rgba(102, 252, 241, 0.6)';
+            ctxS.lineWidth = 1;
+            ctxS.beginPath(); ctxS.moveTo(50, 150); ctxS.lineTo(eX - 10, 150); ctxS.lineTo(eX - 30, 130); ctxS.stroke();
+            ctxS.beginPath(); ctxS.moveTo(eX - 10, 150); ctxS.lineTo(eX - 25, 140); ctxS.stroke();
+            ctxS.beginPath(); ctxS.moveTo(50, 210); ctxS.lineTo(eX - 10, 210); ctxS.lineTo(eX - 30, 230); ctxS.stroke();
+            ctxS.beginPath(); ctxS.moveTo(eX - 10, 210); ctxS.lineTo(eX - 25, 220); ctxS.stroke();
+
+            ctxS.fillStyle = '#4169E1'; ctxS.beginPath(); ctxS.arc(eX, eY, eR, 0, Math.PI*2); ctxS.fill();
+            ctxS.fillStyle = '#999999'; ctxS.beginPath(); ctxS.arc(moon3X, moon3Y, 13, 0, Math.PI*2); ctxS.fill();
+
+            // 텍스트 라벨
+            ctxS.fillStyle = 'white'; ctxS.font = '13px Malgun Gothic'; ctxS.fillText('지구 대기층', eX - 35, eY - 45);
+            ctxS.fillStyle = 'rgba(255, 77, 77, 1)'; ctxS.fillText('굴절된 적색광 →', eX + 50, 160);
+            ctxS.fillStyle = 'rgba(102, 252, 241, 1)'; ctxS.fillText('산란된 청색광 ↑', eX - 120, 140);
+            ctxS.fillStyle = 'rgba(197, 198, 199, 0.95)'; ctxS.fillText('시계 반대방향 공전', eX + 165, eY - 36);
+            ctxS.fillStyle = 'white'; ctxS.fillText('달', moon3X + 18, moon3Y + 5);
+
+            // ================= 2. 밤하늘 관측 시점 (에러 없는 완벽한 사진 매핑) =================
+            ctxO.clearRect(0, 0, canvasO.width, canvasO.height);
+
+            // 밤하늘과 별
+            const skyGrad = ctxO.createLinearGradient(0, 0, 0, 300);
+            skyGrad.addColorStop(0, '#020210');
+            skyGrad.addColorStop(1, '#0f0f2a');
+            ctxO.fillStyle = skyGrad; ctxO.fillRect(0, 0, canvasO.width, canvasO.height);
+            ctxO.fillStyle = "rgba(255, 255, 255, 0.7)";
+            ctxO.fillRect(60, 50, 2, 2); ctxO.fillRect(140, 90, 1, 1); ctxO.fillRect(310, 40, 2, 2); ctxO.fillRect(390, 110, 2, 2);
+
+            // 달은 동쪽(왼쪽)에서 떠서 서쪽(오른쪽)으로 포물선을 그리며 움직임
+            const mX = 80 + (val / 100) * 320;
+            const mY = 220 - Math.sin((val / 100) * Math.PI) * 120;
+            const mR = 40;
+
+            // 지구 그림자가 달의 왼쪽 뒤에서 더 빠른 속도로 접근했다가 달을 지나 오른쪽으로 빠져나감
+            const shX = mX - 180 + (val / 100) * 360;
+            const shY = mY;
+
+            const shR_umbra = 85;
+            const shR_penumbra = 145;
+
+            ctxO.save();
+
+            ctxO.beginPath();
+            ctxO.arc(mX, mY, mR, 0, Math.PI*2);
+            ctxO.clip();
+
+            // 1단계: 실제 보름달 사진 그리기
+            if (moonImg.complete && moonImg.naturalWidth !== 0) {
+                ctxO.drawImage(moonImg, mX - mR, mY - mR, mR*2, mR*2);
+            } else {
+                ctxO.fillStyle = '#dddddd'; ctxO.fill();
+            }
+
+            // 2단계: 반그림자에 닿은 부분부터 서서히 어두워짐
+            const penGrad = ctxO.createRadialGradient(shX, shY, shR_umbra, shX, shY, shR_penumbra);
+            penGrad.addColorStop(0, 'rgba(0, 0, 0, 0.9)');
+            penGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctxO.fillStyle = penGrad;
+
+            ctxO.beginPath();
+            ctxO.arc(shX, shY, shR_penumbra, 0, Math.PI*2);
+            ctxO.fill();
+
+            // 3단계: 본그림자 영역 안쪽은 붉은 블러드문 사진으로 변함
+            ctxO.beginPath();
+            ctxO.arc(shX, shY, shR_umbra, 0, Math.PI*2);
+            ctxO.clip();
+
+            if (bloodImg.complete && bloodImg.naturalWidth !== 0) {
+                ctxO.drawImage(bloodImg, mX - mR, mY - mR, mR*2, mR*2);
+            } else {
+                ctxO.fillStyle = '#8a0303';
+                ctxO.fillRect(mX - mR, mY - mR, mR*2, mR*2);
+            }
+
+            const bloodShadow = ctxO.createRadialGradient(shX, shY, 0, shX, shY, shR_umbra);
+            bloodShadow.addColorStop(0, 'rgba(0,0,0,0.6)');
+            bloodShadow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctxO.fillStyle = bloodShadow;
+            ctxO.fillRect(mX - mR, mY - mR, mR*2, mR*2);
+
+            ctxO.restore();
+
+            ctxO.fillStyle = "#0a110a";
+            ctxO.beginPath();
+            ctxO.moveTo(0, 280);
+            ctxO.quadraticCurveTo(150, 270, 300, 285);
+            ctxO.quadraticCurveTo(390, 278, 480, 290);
+            ctxO.lineTo(480, 360);
+            ctxO.lineTo(0, 360);
+            ctxO.fill();
+
+            ctxO.font = "35px Arial";
+            ctxO.fillText("🧍", 225, 280);
+            ctxO.fillStyle = "rgba(255,255,255,0.7)";
+            ctxO.font = "13px Malgun Gothic";
+            ctxO.fillText("동 (E) ----- 남 (S) ----- 서 (W)", 140, 340);
+            ctxO.fillText("내 지평선", 20, 300);
+
+            // 상태 안내 텍스트: 월식 전반부는 진입, 후반부는 탈출로 구분
+            const res = document.getElementById('result1');
+            const dist = Math.abs(shX - mX);
+            const isLeaving = val > 50;
+
+            if(dist < shR_umbra - mR) {
+                res.innerHTML = "<span style='color:#ff4d4d;'>[개기월식 - 블러드문]</span><br>달 전체가 본그림자 안에 들어갔습니다.<br>대기를 굴절해온 적색광이 실제 사진처럼 달을 붉게 물들입니다!";
+            } else if(dist < shR_umbra + mR) {
+                if(isLeaving) {
+                    res.innerHTML = "<span style='color:#FF9A3C;'>[부분월식 종료 중]</span><br>달이 본그림자에서 빠져나오고 있습니다.<br>가려졌던 부분에 밝은 보름달 사진이 다시 드러납니다.";
+                } else {
+                    res.innerHTML = "<span style='color:#FF9A3C;'>[부분월식 진행 중]</span><br>달의 왼쪽(동쪽)부터 본그림자에 들어가고 있습니다.<br>가려진 부분에 붉은 블러드문 사진이 드러납니다.";
+                }
+            } else if(dist < shR_penumbra + mR) {
+                if(isLeaving) {
+                    res.innerHTML = "<span style='color:#a0a0a0;'>[반영식 종료]</span><br>달이 옅은 반그림자에서도 빠져나오며<br>밝은 보름달의 모습으로 돌아옵니다.";
+                } else {
+                    res.innerHTML = "<span style='color:#a0a0a0;'>[반영식 진입]</span><br>달의 왼쪽 가장자리가 옅은 반그림자에 진입하며<br>그림자가 닿은 곳부터 사진이 서서히 어두워집니다.";
+                }
+            } else {
+                res.innerHTML = "[보름달 이동 중]<br>동쪽 하늘에서 밝은 보름달 사진이 떠올라 하늘을 가로지릅니다.";
+            }
+        }
+
+        function drawOrbitArrow(ctx, cx, cy, radius, angle, color) {
+            const x = cx + Math.cos(angle) * radius;
+            const y = cy + Math.sin(angle) * radius;
+            const tangent = angle - Math.PI / 2;
+            const size = 9;
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(tangent);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(size, 0);
+            ctx.lineTo(-size * 0.65, -size * 0.55);
+            ctx.lineTo(-size * 0.65, size * 0.55);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // ------------------ 심화: 왜 매달 월식이 일어나지 않을까? ------------------
+        function drawTab2() {
+            const canvas = document.getElementById('canvas2');
+            const ctx = canvas.getContext('2d');
+            const angle = parseInt(document.getElementById('slider2').value);
+            const viewRad = angle * Math.PI / 180;
+            const scene = { ox: 380, oy: 220, depth: 0.46, zScale: 1.25, viewRad };
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawDeepSpace(ctx, canvas);
+            drawEclipticPlane(ctx, scene);
+            drawEarthOrbit(ctx, scene);
+            drawSun(ctx, scene);
+
+            const earths = [
+                { orbitAngle: -18, label: '식이 일어나기 어려움', nodePhase: Math.PI / 2, note: '망이 그림자 위쪽을 지남', labelShift: { x: 20, y: -82 } },
+                { orbitAngle: 72, label: '식이 일어나기 쉬움', nodePhase: 0, note: '망이 교점 부근', labelShift: { x: 16, y: -72 } },
+                { orbitAngle: 162, label: '식이 일어나기 어려움', nodePhase: -Math.PI / 2, note: '망이 그림자 아래쪽을 지남', labelShift: { x: -130, y: -76 } },
+                { orbitAngle: 252, label: '식이 일어나기 쉬움', nodePhase: Math.PI, note: '망이 교점 부근', labelShift: { x: -122, y: 64 } }
+            ];
+
+            earths
+                .map(item => ({ ...item, sortY: Math.sin(item.orbitAngle * Math.PI / 180) }))
+                .sort((a, b) => a.sortY - b.sortY)
+                .forEach(item => drawEarthMoonSystem(ctx, scene, item));
+
+            drawSystemLabels(ctx, scene);
+
+            const res = document.getElementById('result2');
+            if(angle < 25) {
+                res.innerHTML = "위에서 보면 달이 매달 지구 그림자 근처를 지나는 것처럼 보입니다. 하지만 파란 달 궤도면은 지구의 공전 궤도면과 약 5° 기울어져 있습니다.";
+            } else if(angle > 70) {
+                res.innerHTML = "옆에서 보면 핵심이 드러납니다. <span style='color:#66fcf1;'>보름달(망)이 교점 근처에 있을 때만 지구 그림자와 만나 월식이 일어납니다.</span>";
+            } else {
+                res.innerText = "각도를 바꿔 보며 달의 공전 궤도면이 지구 그림자 위아래로 빗나가는 모습을 확인해 보세요.";
+            }
+        }
+
+        function project3D(scene, x, y, z) {
+            return {
+                x: scene.ox + x,
+                y: scene.oy + y * scene.depth * Math.cos(scene.viewRad) - z * scene.zScale * Math.sin(scene.viewRad)
+            };
+        }
+
+        function drawDeepSpace(ctx, canvas) {
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, '#06122d');
+            grad.addColorStop(0.55, '#0b4f92');
+            grad.addColorStop(1, '#071528');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgba(255,255,255,0.78)';
+            const stars = [[42,46,1], [95,105,1.4], [158,38,1], [210,142,1.2], [290,70,1], [468,52,1.4], [620,94,1], [706,44,1.2], [688,250,1], [134,314,1], [520,330,1.2], [360,118,1]];
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star[0], star[1], star[2], 0, Math.PI*2);
+                ctx.fill();
+            });
+        }
+
+        function drawEclipticPlane(ctx, scene) {
+            const corners = [
+                project3D(scene, -340, -180, 0),
+                project3D(scene, 340, -180, 0),
+                project3D(scene, 340, 180, 0),
+                project3D(scene, -340, 180, 0)
+            ];
+            ctx.fillStyle = 'rgba(23, 135, 204, 0.48)';
+            ctx.beginPath();
+            corners.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawEarthOrbit(ctx, scene) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.62)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            for(let i = 0; i <= 360; i++) {
+                const rad = i * Math.PI / 180;
+                const p = project3D(scene, Math.cos(rad) * 250, Math.sin(rad) * 150, 0);
+                if(i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawSun(ctx, scene) {
+            const p = project3D(scene, 0, 0, 0);
+            const glow = ctx.createRadialGradient(p.x, p.y, 4, p.x, p.y, 42);
+            glow.addColorStop(0, 'rgba(255,245,137,1)');
+            glow.addColorStop(0.35, 'rgba(255,185,38,0.9)');
+            glow.addColorStop(1, 'rgba(255,120,0,0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath(); ctx.arc(p.x, p.y, 42, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffd447';
+            ctx.beginPath(); ctx.arc(p.x, p.y, 22, 0, Math.PI*2); ctx.fill();
+            labelText(ctx, '태양', p.x + 26, p.y + 5, '#ffffff');
+        }
+
+        function drawEarthMoonSystem(ctx, scene, item) {
+            const theta = item.orbitAngle * Math.PI / 180;
+            const earth = { x: Math.cos(theta) * 250, y: Math.sin(theta) * 150, z: 0 };
+            const outward = normalize2D({ x: earth.x, y: earth.y });
+            const tangent = { x: -outward.y, y: outward.x };
+            const earthP = project3D(scene, earth.x, earth.y, earth.z);
+            const moonR = 42;
+            const tiltHeight = 38;
+
+            drawShadowCone(ctx, scene, earth, outward);
+            drawMoonPlane(ctx, scene, earth, outward, tangent, moonR, tiltHeight, item.nodePhase);
+            drawNodeLine(ctx, scene, earth, outward, tangent, moonR, item.nodePhase);
+
+            const fullMoon = moonPoint(earth, outward, tangent, moonR, tiltHeight, item.nodePhase, 0);
+            const newMoon = moonPoint(earth, outward, tangent, moonR, tiltHeight, item.nodePhase, Math.PI);
+            drawMoon(ctx, scene, fullMoon, item.nodePhase === 0 || item.nodePhase === Math.PI ? '#ffd2a8' : '#c5c6c7');
+            drawMoon(ctx, scene, newMoon, '#d7dce4');
+
+            const fullP = project3D(scene, fullMoon.x, fullMoon.y, fullMoon.z);
+            const newP = project3D(scene, newMoon.x, newMoon.y, newMoon.z);
+            labelText(ctx, '망', fullP.x + 9, fullP.y - 8, '#ffffff');
+            labelText(ctx, '삭', newP.x + 9, newP.y + 12, '#c5c6c7');
+
+            drawEarth(ctx, earthP.x, earthP.y);
+            labelText(ctx, item.label, earthP.x + item.labelShift.x, earthP.y + item.labelShift.y, item.label.includes('쉬움') ? '#ffffff' : '#d8e8ff');
+            labelText(ctx, item.note, earthP.x + item.labelShift.x, earthP.y + item.labelShift.y + 18, item.label.includes('쉬움') ? '#66fcf1' : '#ff9a9a');
+        }
+
+        function drawShadowCone(ctx, scene, earth, outward) {
+            const tangent = { x: -outward.y, y: outward.x };
+            const startW = 18, endW = 6, penStartW = 48, penEndW = 22, len = 88;
+            const pen = [
+                project3D(scene, earth.x + tangent.x * penStartW, earth.y + tangent.y * penStartW, 0),
+                project3D(scene, earth.x + outward.x * len + tangent.x * penEndW, earth.y + outward.y * len + tangent.y * penEndW, 0),
+                project3D(scene, earth.x + outward.x * len - tangent.x * penEndW, earth.y + outward.y * len - tangent.y * penEndW, 0),
+                project3D(scene, earth.x - tangent.x * penStartW, earth.y - tangent.y * penStartW, 0)
+            ];
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            pathFromPoints(ctx, pen);
+            ctx.fill();
+
+            const umbra = [
+                project3D(scene, earth.x + tangent.x * startW, earth.y + tangent.y * startW, 0),
+                project3D(scene, earth.x + outward.x * len + tangent.x * endW, earth.y + outward.y * len + tangent.y * endW, 0),
+                project3D(scene, earth.x + outward.x * len - tangent.x * endW, earth.y + outward.y * len - tangent.y * endW, 0),
+                project3D(scene, earth.x - tangent.x * startW, earth.y - tangent.y * startW, 0)
+            ];
+            ctx.fillStyle = 'rgba(0,0,0,0.58)';
+            pathFromPoints(ctx, umbra);
+            ctx.fill();
+        }
+
+        function drawMoonPlane(ctx, scene, earth, outward, tangent, moonR, tiltHeight, nodePhase) {
+            const sideA = moonPoint(earth, outward, tangent, moonR + 20, tiltHeight, nodePhase, -0.65);
+            const sideB = moonPoint(earth, outward, tangent, moonR + 20, tiltHeight, nodePhase, 0.65);
+            const sideC = moonPoint(earth, outward, tangent, moonR + 20, tiltHeight, nodePhase, Math.PI - 0.65);
+            const sideD = moonPoint(earth, outward, tangent, moonR + 20, tiltHeight, nodePhase, Math.PI + 0.65);
+            const patch = [sideA, sideB, sideC, sideD].map(p => project3D(scene, p.x, p.y, p.z));
+            ctx.fillStyle = 'rgba(47, 195, 255, 0.28)';
+            pathFromPoints(ctx, patch);
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(164, 236, 255, 0.88)';
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            for(let i = 0; i <= 360; i++) {
+                const p3 = moonPoint(earth, outward, tangent, moonR, tiltHeight, nodePhase, i * Math.PI / 180);
+                const p = project3D(scene, p3.x, p3.y, p3.z);
+                if(i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            }
+            ctx.stroke();
+        }
+
+        function drawNodeLine(ctx, scene, earth, outward, tangent, moonR, nodePhase) {
+            const a = moonPoint(earth, outward, tangent, moonR + 17, 0, 0, -nodePhase);
+            const b = moonPoint(earth, outward, tangent, moonR + 17, 0, 0, Math.PI - nodePhase);
+            const pa = project3D(scene, a.x, a.y, 0);
+            const pb = project3D(scene, b.x, b.y, 0);
+            ctx.strokeStyle = 'rgba(255, 70, 70, 0.95)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(pa.x, pa.y);
+            ctx.lineTo(pb.x, pb.y);
+            ctx.stroke();
+        }
+
+        function moonPoint(earth, outward, tangent, moonR, tiltHeight, nodePhase, phi) {
+            return {
+                x: earth.x + outward.x * Math.cos(phi) * moonR + tangent.x * Math.sin(phi) * moonR,
+                y: earth.y + outward.y * Math.cos(phi) * moonR + tangent.y * Math.sin(phi) * moonR,
+                z: Math.sin(phi + nodePhase) * tiltHeight
+            };
+        }
+
+        function drawEarth(ctx, x, y) {
+            ctx.fillStyle = '#4169E1';
+            ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'rgba(70, 180, 90, 0.85)';
+            ctx.beginPath(); ctx.arc(x - 3, y - 2, 5, 0.2, Math.PI * 1.4); ctx.fill();
+            ctx.strokeStyle = 'rgba(180, 230, 255, 0.9)';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI*2); ctx.stroke();
+        }
+
+        function drawMoon(ctx, scene, moon, color) {
+            const p = project3D(scene, moon.x, moon.y, moon.z);
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI*2); ctx.stroke();
+        }
+
+        function drawSystemLabels(ctx, scene) {
+            const planeLabel = project3D(scene, 180, 170, 0);
+            labelText(ctx, '지구의 공전 궤도면', planeLabel.x - 30, planeLabel.y + 10, '#d8f4ff');
+            drawLegend(ctx, 18, 18, '흰색 타원: 지구의 공전 궤도', 'rgba(255,255,255,0.7)');
+            drawLegend(ctx, 18, 42, '하늘색 면/고리: 달의 공전 궤도면', 'rgba(102,252,241,0.95)');
+            drawLegend(ctx, 18, 66, '빨간 선: 두 궤도면이 만나는 교선', 'rgba(255,70,70,0.95)');
+        }
+
+        function pathFromPoints(ctx, points) {
+            ctx.beginPath();
+            points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+            ctx.closePath();
+        }
+
+        function normalize2D(v) {
+            const len = Math.sqrt(v.x * v.x + v.y * v.y) || 1;
+            return { x: v.x / len, y: v.y / len };
+        }
+
+        function labelText(ctx, text, x, y, color) {
+            ctx.fillStyle = color;
+            ctx.font = '13px Malgun Gothic';
+            ctx.fillText(text, x, y);
+        }
+
+        function drawLegend(ctx, x, y, label, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + 24, y);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,0.88)';
+            ctx.font = '12px Malgun Gothic';
+            ctx.fillText(label, x + 32, y + 4);
+        }
+
+        document.getElementById('slider1').addEventListener('input', drawTab1);
+        document.getElementById('slider2').addEventListener('input', drawTab2);
+
+        // 첫 실행
+        drawTab1();
+        drawTab2();
+    </script>
+</body>
+</html>

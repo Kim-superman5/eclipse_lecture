@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>식 현상 개념 형성 점검</title>
+    <style>
+        :root {
+            --bg: #070914;
+            --panel: #1f2833;
+            --line: #45a29e;
+            --mint: #66fcf1;
+            --text: #ffffff;
+            --muted: #c5c6c7;
+            --warn: #ffb86b;
+            --good: #4ECCA3;
+            --bad: #ff6b6b;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 8% 18%, rgba(255,255,255,0.95) 0 1px, transparent 1.6px),
+                radial-gradient(circle at 22% 72%, rgba(102,252,241,0.65) 0 1px, transparent 1.8px),
+                radial-gradient(circle at 38% 28%, rgba(255,255,255,0.8) 0 1px, transparent 1.7px),
+                radial-gradient(circle at 58% 64%, rgba(255,255,255,0.7) 0 1px, transparent 1.6px),
+                radial-gradient(circle at 76% 22%, rgba(102,252,241,0.7) 0 1px, transparent 1.8px),
+                radial-gradient(circle at 91% 80%, rgba(255,255,255,0.85) 0 1px, transparent 1.6px),
+                linear-gradient(180deg, #070914 0%, #0b0c10 52%, #070914 100%);
+            background-size: 180px 180px, 230px 230px, 260px 260px, 210px 210px, 250px 250px, 200px 200px, 100% 100%;
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin: 0 0 8px;
+            color: var(--mint);
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin: 0;
+            line-height: 1.55;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(260px, 0.9fr) minmax(0, 2fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel {
+            background: rgba(31, 40, 51, 0.94);
+            border: 1px solid rgba(69, 162, 158, 0.65);
+            border-radius: 12px;
+            box-shadow: 0 10px 22px rgba(0,0,0,0.35);
+            padding: 18px;
+        }
+
+        .summary h2,
+        .question-card h2 {
+            font-size: 1.08rem;
+            color: var(--mint);
+            margin: 0 0 12px;
+        }
+
+        .concept-list {
+            display: grid;
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .concept-list li {
+            border-left: 4px solid var(--line);
+            background: rgba(11, 12, 16, 0.5);
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .score-box {
+            margin-top: 18px;
+            padding: 14px;
+            background: rgba(11, 12, 16, 0.55);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .score-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--mint);
+        }
+
+        .score-caption {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        .progress {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--line), var(--mint));
+            transition: width 0.25s ease;
+        }
+
+        .questions {
+            display: grid;
+            gap: 16px;
+        }
+
+        .question-card {
+            position: relative;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: #071014;
+            background: var(--mint);
+            font-weight: 700;
+            border-radius: 99px;
+            padding: 5px 10px;
+            margin-bottom: 10px;
+        }
+
+        .prompt {
+            color: var(--text);
+            line-height: 1.62;
+            margin: 0 0 12px;
+            font-size: 1.02rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 106px;
+            resize: vertical;
+            border: 1px solid rgba(102,252,241,0.5);
+            border-radius: 10px;
+            background: rgba(4, 6, 13, 0.85);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.55;
+            padding: 12px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: var(--mint);
+            box-shadow: 0 0 0 3px rgba(102,252,241,0.14);
+        }
+
+        .choices {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .choice {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            text-align: left;
+            background: rgba(4, 6, 13, 0.72);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 11px 12px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .choice input {
+            margin-top: 4px;
+            accent-color: var(--mint);
+        }
+
+        .blank-input {
+            width: 100%;
+            border: 1px solid rgba(102,252,241,0.5);
+            border-radius: 10px;
+            background: rgba(4, 6, 13, 0.85);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 1rem;
+            padding: 12px;
+            outline: none;
+        }
+
+        .blank-input:focus {
+            border-color: var(--mint);
+            box-shadow: 0 0 0 3px rgba(102,252,241,0.14);
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        button {
+            border: none;
+            border-radius: 9px;
+            padding: 11px 14px;
+            font-family: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .check-btn {
+            background: var(--mint);
+            color: #071014;
+        }
+
+        .hint-btn {
+            background: rgba(255,255,255,0.12);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.16);
+        }
+
+        .feedback {
+            display: none;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(11, 12, 16, 0.62);
+            color: var(--muted);
+            line-height: 1.55;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .feedback.show { display: block; }
+        .feedback.good { border-color: rgba(78, 204, 163, 0.75); }
+        .feedback.partial { border-color: rgba(255, 184, 107, 0.75); }
+        .feedback.retry { border-color: rgba(255, 107, 107, 0.75); }
+
+        .feedback strong { color: var(--text); }
+        .keyword { color: var(--mint); font-weight: 800; }
+
+        .footer-tools {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .reset-btn {
+            background: rgba(255,255,255,0.13);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.16);
+        }
+
+        @media (max-width: 850px) {
+            .dashboard { grid-template-columns: 1fr; }
+            body { padding: 12px; }
+            h1 { font-size: 1.45rem; }
+            .panel { padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>식 현상 개념 형성 점검</h1>
+            <p class="subtitle">일식과 월식의 원인을 스스로 설명해 보며 개념 형성 정도를 확인합니다.</p>
+        </header>
+
+        <main class="dashboard">
+            <aside class="panel summary">
+                <h2>점검할 핵심 개념</h2>
+                <ul class="concept-list">
+                    <li><strong>일식</strong>: 태양-달-지구 순서로 놓일 때 달의 그림자가 지구에 생긴다.</li>
+                    <li><strong>월식</strong>: 태양-지구-달 순서로 놓일 때 달이 지구의 그림자에 들어간다.</li>
+                    <li><strong>매달 식이 일어나지 않는 까닭</strong>: 달의 공전 궤도면이 지구의 공전 궤도면과 기울어져 있다.</li>
+                </ul>
+
+                <div class="score-box">
+                    <div class="score-number"><span id="score">0</span>/<span id="totalScore">9</span></div>
+                    <div class="score-caption" id="scoreCaption">아직 점검 전입니다.</div>
+                    <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+                </div>
+            </aside>
+
+            <section class="questions">
+                <article class="panel question-card" data-mc="0">
+                    <div class="badge">객관식 1 · 일식</div>
+                    <h2>일식이 일어날 때의 배열은?</h2>
+                    <p class="prompt">일식이 일어나려면 세 천체가 어떤 순서로 놓여야 할까요?</p>
+                    <div class="choices">
+                        <label class="choice"><input type="radio" name="mc0" value="0"> 태양-지구-달</label>
+                        <label class="choice"><input type="radio" name="mc0" value="1"> 태양-달-지구</label>
+                        <label class="choice"><input type="radio" name="mc0" value="2"> 달-태양-지구</label>
+                        <label class="choice"><input type="radio" name="mc0" value="3"> 지구-태양-달</label>
+                    </div>
+                    <div class="actions"><button class="check-btn" onclick="checkMC(0)">채점해 보기</button></div>
+                    <div class="feedback" id="mcFeedback0"></div>
+                </article>
+
+                <article class="panel question-card" data-mc="1">
+                    <div class="badge">객관식 2 · 월식</div>
+                    <h2>월식이 일어날 때 달은 어디에 있을까?</h2>
+                    <p class="prompt">월식이 일어나는 상황을 가장 바르게 설명한 것은?</p>
+                    <div class="choices">
+                        <label class="choice"><input type="radio" name="mc1" value="0"> 달이 태양의 그림자에 들어간다.</label>
+                        <label class="choice"><input type="radio" name="mc1" value="1"> 달이 지구의 그림자에 들어간다.</label>
+                        <label class="choice"><input type="radio" name="mc1" value="2"> 지구가 달의 그림자에 들어간다.</label>
+                        <label class="choice"><input type="radio" name="mc1" value="3"> 태양이 달의 그림자에 들어간다.</label>
+                    </div>
+                    <div class="actions"><button class="check-btn" onclick="checkMC(1)">채점해 보기</button></div>
+                    <div class="feedback" id="mcFeedback1"></div>
+                </article>
+
+                <article class="panel question-card" data-mc="2">
+                    <div class="badge">객관식 3 · 그림자</div>
+                    <h2>본그림자와 반그림자의 차이는?</h2>
+                    <p class="prompt">본그림자에 들어간 관측자가 보는 현상으로 알맞은 것은?</p>
+                    <div class="choices">
+                        <label class="choice"><input type="radio" name="mc2" value="0"> 태양의 일부만 가려진다.</label>
+                        <label class="choice"><input type="radio" name="mc2" value="1"> 태양이 완전히 가려질 수 있다.</label>
+                        <label class="choice"><input type="radio" name="mc2" value="2"> 달이 항상 붉게 보인다.</label>
+                        <label class="choice"><input type="radio" name="mc2" value="3"> 식 현상이 전혀 일어나지 않는다.</label>
+                    </div>
+                    <div class="actions"><button class="check-btn" onclick="checkMC(2)">채점해 보기</button></div>
+                    <div class="feedback" id="mcFeedback2"></div>
+                </article>
+
+                <article class="panel question-card" data-mc="3">
+                    <div class="badge">객관식 4 · 심화</div>
+                    <h2>왜 매달 식이 일어나지 않을까?</h2>
+                    <p class="prompt">삭과 망이 매달 있는데도 일식과 월식이 매달 일어나지 않는 까닭은?</p>
+                    <div class="choices">
+                        <label class="choice"><input type="radio" name="mc3" value="0"> 달의 공전 궤도면이 지구의 공전 궤도면과 기울어져 있기 때문이다.</label>
+                        <label class="choice"><input type="radio" name="mc3" value="1"> 달이 지구 주위를 공전하지 않기 때문이다.</label>
+                        <label class="choice"><input type="radio" name="mc3" value="2"> 태양빛이 매달 약해지기 때문이다.</label>
+                        <label class="choice"><input type="radio" name="mc3" value="3"> 지구가 자전하지 않기 때문이다.</label>
+                    </div>
+                    <div class="actions"><button class="check-btn" onclick="checkMC(3)">채점해 보기</button></div>
+                    <div class="feedback" id="mcFeedback3"></div>
+                </article>
+
+                <article class="panel question-card" data-blank="0">
+                    <div class="badge">빈칸 1 · 일식</div>
+                    <h2>빈칸에 들어갈 말은?</h2>
+                    <p class="prompt">일식은 달의 <strong>(　　　)</strong>가 지구에 닿을 때 관측될 수 있습니다.</p>
+                    <input class="blank-input" id="blank0" type="text" placeholder="답 입력">
+                    <div class="actions"><button class="check-btn" onclick="checkBlank(0)">채점해 보기</button></div>
+                    <div class="feedback" id="blankFeedback0"></div>
+                </article>
+
+                <article class="panel question-card" data-blank="1">
+                    <div class="badge">빈칸 2 · 심화</div>
+                    <h2>빈칸에 들어갈 말은?</h2>
+                    <p class="prompt">일식이나 월식은 삭이나 망이 두 궤도면이 만나는 <strong>(　　　)</strong> 근처에서 일어날 때 잘 발생합니다.</p>
+                    <input class="blank-input" id="blank1" type="text" placeholder="답 입력">
+                    <div class="actions"><button class="check-btn" onclick="checkBlank(1)">채점해 보기</button></div>
+                    <div class="feedback" id="blankFeedback1"></div>
+                </article>
+
+                <article class="panel question-card" data-question="0">
+                    <div class="badge">서술형 1 · 일식</div>
+                    <h2>같은 날에도 왜 지역마다 다르게 보일까?</h2>
+                    <p class="prompt">한 지역에서는 개기일식, 다른 지역에서는 부분일식이 관측되었습니다. 두 지역이 달 그림자의 어느 부분에 있었는지 짧게 설명해 보세요.</p>
+                    <textarea placeholder="예: 개기일식 지역은..."></textarea>
+                    <div class="actions">
+                        <button class="check-btn" onclick="checkAnswer(0)">채점해 보기</button>
+                        <button class="hint-btn" onclick="toggleHint(0)">예시 답안 보기</button>
+                    </div>
+                    <div class="feedback" id="feedback0"></div>
+                </article>
+
+                <article class="panel question-card" data-question="1">
+                    <div class="badge">서술형 2 · 월식</div>
+                    <h2>월식은 왜 밤인 지역에서 함께 볼 수 있을까?</h2>
+                    <p class="prompt">일식은 좁은 지역에서만 보이지만, 월식은 밤인 지역에서 비교적 넓게 관측됩니다. 그 까닭을 그림자의 위치와 관측 대상을 이용해 설명해 보세요.</p>
+                    <textarea placeholder="예: 월식은 달이..."></textarea>
+                    <div class="actions">
+                        <button class="check-btn" onclick="checkAnswer(1)">채점해 보기</button>
+                        <button class="hint-btn" onclick="toggleHint(1)">예시 답안 보기</button>
+                    </div>
+                    <div class="feedback" id="feedback1"></div>
+                </article>
+
+                <article class="panel question-card" data-question="2">
+                    <div class="badge">서술형 3 · 심화</div>
+                    <h2>식이 일어날 가능성이 큰 때를 판단해 보자</h2>
+                    <p class="prompt">어떤 달의 보름달이 교점에서 멀리 떨어져 있습니다. 이때 월식이 일어나기 어려운 까닭을 짧게 설명해 보세요.</p>
+                    <textarea placeholder="예: 교점에서 멀면..."></textarea>
+                    <div class="actions">
+                        <button class="check-btn" onclick="checkAnswer(2)">채점해 보기</button>
+                        <button class="hint-btn" onclick="toggleHint(2)">예시 답안 보기</button>
+                    </div>
+                    <div class="feedback" id="feedback2"></div>
+                </article>
+            </section>
+        </main>
+
+        <div class="footer-tools">
+            <button class="reset-btn" onclick="resetAll()">다시 풀기</button>
+        </div>
+    </div>
+
+    <script>
+        const mcQuestions = [
+            {
+                answer: '1',
+                explanation: '일식은 태양-달-지구 순서로 놓여 달의 그림자가 지구에 생길 때 일어납니다.',
+                hints: [
+                    '월식 배열과 헷갈리지 않았는지 확인해 보세요. 일식에서는 달이 태양빛을 가로막습니다.',
+                    '',
+                    '태양이 가운데 있으면 달이 태양빛을 지구 쪽에서 가로막기 어렵습니다. 그림자가 어디로 생길지 떠올려 보세요.',
+                    '태양이 가운데 있는 배열은 일식의 기본 배열이 아닙니다. 달이 태양과 지구 사이에 있는지 확인해 보세요.'
+                ]
+            },
+            {
+                answer: '1',
+                explanation: '월식은 달이 지구의 그림자에 들어가는 현상입니다.',
+                hints: [
+                    '태양은 스스로 빛을 내므로 태양의 그림자라는 표현이 어색합니다. 그림자를 만드는 천체를 다시 생각해 보세요.',
+                    '',
+                    '이 설명은 일식에 가깝습니다. 월식에서는 관측 대상인 달이 어두워집니다.',
+                    '태양이 그림자 안에 들어간다는 표현은 맞지 않습니다. 달이 어느 그림자에 들어가는지 생각해 보세요.'
+                ]
+            },
+            {
+                answer: '1',
+                explanation: '본그림자에서는 빛이 완전히 가려질 수 있어 개기식이 관측될 수 있습니다.',
+                hints: [
+                    '태양의 일부만 가려지는 것은 반그림자와 더 관련이 큽니다. 본그림자는 빛이 얼마나 가려지는 영역일까요?',
+                    '',
+                    '달이 붉게 보이는 현상은 월식의 색 변화와 관련이 큽니다. 지금 문항은 그림자의 종류를 묻고 있습니다.',
+                    '본그림자는 식 현상이 가장 뚜렷하게 보이는 영역입니다. 빛이 완전히 가려지는지 떠올려 보세요.'
+                ]
+            },
+            {
+                answer: '0',
+                explanation: '달의 공전 궤도면이 지구의 공전 궤도면과 약 5° 기울어져 있어 대부분은 그림자가 빗나갑니다.',
+                hints: [
+                    '',
+                    '달은 지구 주위를 공전합니다. 식이 매달 일어나지 않는 이유는 공전 자체가 없어서가 아닙니다.',
+                    '태양빛의 세기가 매달 크게 약해져서 식이 결정되는 것은 아닙니다. 궤도면의 관계를 떠올려 보세요.',
+                    '지구의 자전은 낮과 밤과 관련이 큽니다. 식이 매달 안 생기는 이유는 달의 궤도 기울기와 더 관련이 큽니다.'
+                ]
+            }
+        ];
+
+        const blankQuestions = [
+            {
+                answers: ['그림자', '본그림자', '반그림자'],
+                explanation: '일식은 달의 그림자가 지구에 드리워질 때 일어납니다. 특히 본그림자 지역에서는 개기일식을 볼 수 있습니다.',
+                hint: '일식에서는 달이 태양빛을 가로막습니다. 그때 지구 표면에 생기는 것은 무엇인지 떠올려 보세요.'
+            },
+            {
+                answers: ['교점'],
+                explanation: '교점은 달의 공전 궤도면과 지구의 공전 궤도면이 만나는 곳입니다.',
+                hint: '두 궤도면이 서로 기울어져 있을 때, 두 면이 만나는 지점을 무엇이라고 부르는지 생각해 보세요.'
+            }
+        ];
+
+        const questions = [
+            {
+                keywords: ['개기일식', '부분일식', '본그림자', '반그림자', '지역'],
+                groups: [
+                    ['개기일식', '개기'],
+                    ['부분일식', '부분'],
+                    ['본그림자'],
+                    ['반그림자']
+                ],
+                requiredGroups: [
+                    ['개기일식', '개기'],
+                    ['부분일식', '부분'],
+                    ['본그림자'],
+                    ['반그림자']
+                ],
+                misconceptions: [
+                    { words: ['개기일식은반그림자', '개기는반그림자'], message: '개기일식은 반그림자가 아니라 본그림자 지역에서 관측됩니다.' },
+                    { words: ['부분일식은본그림자', '부분은본그림자'], message: '부분일식은 본그림자가 아니라 반그림자 지역에서 관측됩니다.' },
+                    { words: ['월식'], message: '이 문항은 일식이 지역에 따라 다르게 보이는 까닭을 묻고 있습니다.' }
+                ],
+                example: '개기일식이 보인 지역은 달의 본그림자 안에 있고, 부분일식이 보인 지역은 달의 반그림자 안에 있다. 본그림자는 태양이 완전히 가려지는 좁은 영역이고, 반그림자는 태양의 일부만 가려지는 더 넓은 영역이다.'
+            },
+            {
+                keywords: ['월식', '달', '지구의 그림자', '밤', '넓'],
+                groups: [
+                    ['달'],
+                    ['지구의그림자', '지구그림자', '본그림자'],
+                    ['밤'],
+                    ['넓', '여러지역', '함께']
+                ],
+                requiredGroups: [
+                    ['달'],
+                    ['지구의그림자', '지구그림자', '본그림자'],
+                    ['밤', '밤인지역', '넓', '여러지역', '함께']
+                ],
+                misconceptions: [
+                    { words: ['달의그림자'], message: '월식에서는 달의 그림자가 아니라 지구의 그림자가 달에 드리워집니다.' },
+                    { words: ['태양이가려진다', '태양을가린다'], message: '월식에서 관측 대상은 태양이 아니라 달입니다. 달이 어두워지는 현상을 설명해야 합니다.' },
+                    { words: ['일식'], message: '이 문항은 월식이 넓은 지역에서 보이는 까닭을 묻고 있습니다.' }
+                ],
+                example: '월식은 달이 지구의 그림자에 들어가는 현상이다. 그림자가 생기는 곳은 달이므로, 그 시간에 달이 보이는 밤인 지역에서는 비교적 넓게 같은 월식을 관측할 수 있다.'
+            },
+            {
+                keywords: ['보름달', '교점', '궤도면', '기울', '빗나'],
+                groups: [
+                    ['교점'],
+                    ['멀리', '멀면'],
+                    ['빗나', '위', '아래'],
+                    ['기울', '궤도면']
+                ],
+                requiredGroups: [
+                    ['교점'],
+                    ['멀리', '멀면'],
+                    ['빗나', '위', '아래', '기울', '궤도면']
+                ],
+                misconceptions: [
+                    { words: ['월식이일어난다', '반드시일어난다', '항상일어난다'], message: '교점에서 멀리 떨어진 보름달은 지구 그림자를 빗나갈 가능성이 큽니다.' },
+                    { words: ['자전때문', '날씨때문'], message: '매달 식이 일어나지 않는 주된 이유는 자전이나 날씨가 아니라 달 공전 궤도면의 기울기입니다.' },
+                    { words: ['기울어져있지않', '기울어지지않', '기울지않'], message: '달의 공전 궤도면은 지구의 공전 궤도면과 약 5° 기울어져 있습니다.' }
+                ],
+                example: '보름달이더라도 교점에서 멀리 떨어져 있으면 달의 공전 궤도면 기울기 때문에 달이 지구 그림자의 위나 아래를 지나갈 수 있다. 그래서 지구 그림자에 들어가지 못해 월식이 일어나기 어렵다.'
+            }
+        ];
+
+        const totalItems = mcQuestions.length + blankQuestions.length + questions.length;
+        const checked = Array(totalItems).fill(false);
+        const passed = Array(totalItems).fill(false);
+        const hintsOpen = [false, false, false];
+
+        document.getElementById('totalScore').innerText = totalItems;
+
+        function normalize(text) {
+            return text.replace(/\s+/g, '').replace(/[.,!?'"“”‘’]/g, '').toLowerCase();
+        }
+
+        function checkMC(index) {
+            const selected = document.querySelector(`input[name="mc${index}"]:checked`);
+            const feedback = document.getElementById(`mcFeedback${index}`);
+            const globalIndex = index;
+
+            checked[globalIndex] = true;
+            feedback.className = 'feedback show';
+
+            if (!selected) {
+                passed[globalIndex] = false;
+                feedback.classList.add('retry');
+                feedback.innerHTML = '<strong>답을 선택해 주세요.</strong>';
+            } else if (selected.value === mcQuestions[index].answer) {
+                passed[globalIndex] = true;
+                feedback.classList.add('good');
+                feedback.innerHTML = `<strong>정답입니다.</strong><br>${mcQuestions[index].explanation}`;
+            } else {
+                passed[globalIndex] = false;
+                feedback.classList.add('retry');
+                feedback.innerHTML = `<strong>다시 생각해 봅시다.</strong><br>${mcQuestions[index].hints[Number(selected.value)]}<br><span style="color:#c5c6c7;">다른 선택지를 고르기 전에, 그림자가 어느 천체에 생기는지 먼저 떠올려 보세요.</span>`;
+            }
+
+            updateScore();
+        }
+
+        function checkBlank(index) {
+            const input = document.getElementById(`blank${index}`);
+            const compact = normalize(input.value);
+            const feedback = document.getElementById(`blankFeedback${index}`);
+            const globalIndex = mcQuestions.length + index;
+            const isCorrect = blankQuestions[index].answers.some(answer => compact === normalize(answer));
+
+            checked[globalIndex] = true;
+            passed[globalIndex] = isCorrect;
+            feedback.className = 'feedback show';
+
+            if (isCorrect) {
+                feedback.classList.add('good');
+                feedback.innerHTML = `<strong>정답입니다.</strong><br>${blankQuestions[index].explanation}`;
+            } else {
+                feedback.classList.add('retry');
+                feedback.innerHTML = `<strong>다시 생각해 봅시다.</strong><br>${blankQuestions[index].hint}<br><span style="color:#c5c6c7;">앞의 탐구 그림에서 어느 부분을 가리켰는지 떠올린 뒤 다시 입력해 보세요.</span>`;
+            }
+
+            updateScore();
+        }
+
+        function checkAnswer(index) {
+            const card = document.querySelector(`[data-question="${index}"]`);
+            const answer = card.querySelector('textarea').value.trim();
+            const compact = normalize(answer);
+            const data = questions[index];
+            const feedback = document.getElementById(`feedback${index}`);
+            const globalIndex = mcQuestions.length + blankQuestions.length + index;
+
+            const keywordHits = data.keywords.filter(word => compact.includes(normalize(word)));
+            const groupHits = data.groups.filter(group => group.some(word => compact.includes(normalize(word))));
+            const requiredHits = data.requiredGroups.filter(group => group.some(word => compact.includes(normalize(word))));
+            const misconception = data.misconceptions.find(item => item.words.some(word => compact.includes(normalize(word))));
+            const enoughLength = answer.length >= 20;
+
+            checked[globalIndex] = true;
+            passed[globalIndex] = !misconception && requiredHits.length === data.requiredGroups.length && enoughLength;
+
+            feedback.className = 'feedback show';
+            if (misconception) {
+                feedback.classList.add('retry');
+                feedback.innerHTML = `<strong>오개념이 보입니다.</strong><br>${misconception.message}`;
+            } else if (passed[globalIndex]) {
+                feedback.classList.add('good');
+                feedback.innerHTML = `<strong>좋아요.</strong> 핵심 개념이 잘 들어갔습니다.<br>확인된 핵심어: ${formatKeywords(keywordHits)}`;
+            } else if (requiredHits.length >= 2 || groupHits.length >= 2) {
+                feedback.classList.add('partial');
+                feedback.innerHTML = `<strong>조금만 더 보완해 보세요.</strong><br>현재 답에는 ${formatKeywords(keywordHits)} 등이 보입니다. 빠진 핵심 요소를 한 가지 더 넣어 보세요.`;
+            } else {
+                feedback.classList.add('retry');
+                feedback.innerHTML = `<strong>다시 설명해 봅시다.</strong><br>현상을 외운 이름으로만 쓰기보다, 천체의 배열과 그림자가 어디에 생기는지를 함께 써 보세요.`;
+            }
+
+            updateScore();
+        }
+
+        function toggleHint(index) {
+            const feedback = document.getElementById(`feedback${index}`);
+            hintsOpen[index] = !hintsOpen[index];
+
+            if (hintsOpen[index]) {
+                feedback.className = 'feedback show partial';
+                feedback.innerHTML = `<strong>예시 답안</strong><br>${questions[index].example}`;
+            } else {
+                feedback.className = 'feedback';
+                feedback.innerHTML = '';
+            }
+        }
+
+        function formatKeywords(words) {
+            if (words.length === 0) return '<span class="keyword">아직 뚜렷한 핵심어 없음</span>';
+            return words.map(word => `<span class="keyword">${word}</span>`).join(', ');
+        }
+
+        function updateScore() {
+            const score = passed.filter(Boolean).length;
+            document.getElementById('score').innerText = score;
+            document.getElementById('progressFill').style.width = `${(score / totalItems) * 100}%`;
+
+            const caption = document.getElementById('scoreCaption');
+            if (score === totalItems) caption.innerText = '개념 연결이 잘 형성되었습니다.';
+            else if (score >= 7) caption.innerText = '대체로 좋습니다. 부족한 문항만 보완해 보세요.';
+            else if (score >= 4) caption.innerText = '기본 개념은 잡혀 있습니다. 오개념 문항을 다시 확인해 보세요.';
+            else if (checked.some(Boolean)) caption.innerText = '핵심어와 원인-결과 연결을 더 채워 봅시다.';
+            else caption.innerText = '아직 점검 전입니다.';
+        }
+
+        function resetAll() {
+            document.querySelectorAll('textarea').forEach(area => area.value = '');
+            document.querySelectorAll('.blank-input').forEach(input => input.value = '');
+            document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+            document.querySelectorAll('.feedback').forEach(box => {
+                box.className = 'feedback';
+                box.innerHTML = '';
+            });
+            checked.fill(false);
+            passed.fill(false);
+            hintsOpen.fill(false);
+            updateScore();
+        }
+    </script>
+</body>
+</html>
