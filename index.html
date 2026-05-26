@@ -7,111 +7,86 @@
 <title>식 현상 학습</title>
 
 <style>
-    body{
-        margin:0;
-        font-family:'Malgun Gothic', sans-serif;
+    body {
+        margin: 0;
+        font-family: 'Malgun Gothic', sans-serif;
 
         background:
         radial-gradient(circle at 20% 20%, rgba(255,255,255,0.15) 1px, transparent 2px),
         radial-gradient(circle at 80% 40%, rgba(255,255,255,0.1) 1px, transparent 2px),
         linear-gradient(to bottom, #050816, #0b1026);
 
-        background-size:200px 200px;
+        background-size: 200px 200px;
+        color: white;
 
-        color:white;
-
-        display:flex;
-        justify-content:center;
-        align-items:center;
-
-        min-height:100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
     }
 
-    .container{
-        text-align:center;
-        background:rgba(20,25,40,0.85);
+    .container {
+        text-align: center;
+        background: rgba(20,25,40,0.85);
 
-        padding:40px;
-        border-radius:20px;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 0 25px rgba(0,0,0,0.5);
 
-        box-shadow:0 0 25px rgba(0,0,0,0.5);
-
-        width:90%;
-        max-width:500px;
+        width: 90%;
+        max-width: 500px;
     }
 
-    h1{
-        color:#66fcf1;
-        margin-bottom:40px;
+    h1 {
+        color: #66fcf1;
+        margin-bottom: 40px;
     }
 
-    .menu-btn{
-        display:block;
-
-        width:100%;
-
-        margin:18px 0;
-        padding:18px;
-
-        font-size:1.2em;
-
-        border:none;
-        border-radius:12px;
-
-        cursor:pointer;
-
-        background:#1f2833;
-        color:white;
-
-        transition:0.25s;
+    .menu-btn {
+        display: block;
+        width: 100%;
+        margin: 18px 0;
+        padding: 18px;
+        font-size: 1.2em;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        background: #1f2833;
+        color: white;
+        transition: 0.25s;
     }
 
-    .menu-btn:hover{
-        background:#66fcf1;
-        color:black;
-        transform:scale(1.03);
+    .menu-btn:hover {
+        background: #66fcf1;
+        color: black;
+        transform: scale(1.03);
     }
 
-    a{
-        text-decoration:none;
+    a {
+        text-decoration: none;
     }
 
-    .footer{
-        margin-top:30px;
-        font-size:0.9em;
-        color:#c5c6c7;
+    .footer {
+        margin-top: 30px;
+        font-size: 0.9em;
+        color: #c5c6c7;
     }
 </style>
 </head>
-
 <body>
 
 <div class="container">
-
-    <h1>🌎 식 현상 학습 시뮬레이션</h1>
-
-    <a href="solar-eclipse.html">
-        <button class="menu-btn">
-            🌞 일식 개념 확인
-        </button>
-    </a>
-
-    <a href="lunar-eclipse.html">
-        <button class="menu-btn">
-            🌕 월식 개념 확인
-        </button>
-    </a>
-
-    <a href="quiz.html">
-        <button class="menu-btn">
-            📝 형성평가
-        </button>
-    </a>
+    <h1>식 현상 학습 메뉴</h1>
+    
+    <a href="Eclipse_part_1.html"><button class="menu-btn">탐구 1: 일식 편</button></a>
+    <a href="Eclipse_part2.html"><button class="menu-btn">탐구 2: 월식 및 심화 편</button></a>
+    <a href="Eclipse_part_3_concept_check.html"><button class="menu-btn">개념 형성 점검 활동지</button></a>
+    
+    <a href="eclipse-summary.html"><button class="menu-btn">일식과 월식 비교 정리</button></a>
 
     <div class="footer">
-        천체의 위치 관계와 식 현상을 탐구해봅시다.
+        고등학교 지구과학 I
     </div>
-
 </div>
 
 </body>
